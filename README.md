@@ -1,2 +1,0 @@
-# android
-RecruitIn Android app
