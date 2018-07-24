@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">RecrutIn-Android</string>
+
+    <string name="hint_find">Вакансия</string>
+    <string name="action_find">Найти</string>
+
+    <string name="filter_title">Фильтр</string>
+</resources>
