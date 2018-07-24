@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GridFragment">
+    tools:context=".ListFragment">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -20,47 +20,47 @@
             <!--app:navigationIcon="@drawable/shr_menu"-->
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginTop="?attr/actionBarSize"
-        android:background="@color/productGridBackgroundColor"
-        android:elevation="@dimen/def_elevation">
-        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior"-->
+        android:background="@color/listBackgroundColor">
 
-        <LinearLayout
+        <android.support.design.widget.TextInputLayout
+            style="@style/Widget.RecruteIn.TextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:hint="@string/hint_find">
 
-            <android.support.design.widget.TextInputLayout
-                style="@style/Widget.RecruteIn.TextInputLayout"
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/search_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/hint_find">
+                android:inputType="text"
+                android:maxLines="1" />
+        </android.support.design.widget.TextInputLayout>
 
-                <android.support.design.widget.TextInputEditText
-                    android:id="@+id/search_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:maxLines="1" />
-            </android.support.design.widget.TextInputLayout>
+        <android.support.design.button.MaterialButton
+            android:id="@+id/search_button"
+            android:layout_gravity="end"
+            style="@style/Widget.RecruteIn.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/action_find" />
 
-            <android.support.design.button.MaterialButton
-                android:id="@+id/search_button"
-                android:layout_gravity="end"
-                style="@style/Widget.RecruteIn.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/action_find" />
+        <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <!--app:layout_behavior="@string/appbar_scrolling_view_behavior"-->
+
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-        </LinearLayout>
 
-    </android.support.v4.widget.NestedScrollView>
 
+        </android.support.v4.widget.NestedScrollView>
+    </LinearLayout>
 </FrameLayout>

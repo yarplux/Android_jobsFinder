@@ -31,4 +31,10 @@
         <item name="android:textColorPrimary">@color/textColorAccent</item>
     </style>
 
+    <!--Text cards styles-->
+    <style name="Card.Title" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+    </style>
+
 </resources>

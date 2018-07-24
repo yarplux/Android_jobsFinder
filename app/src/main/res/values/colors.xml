@@ -11,5 +11,5 @@
     <color name="textColorAccent">#ffffff</color>
     <color name="textColorPrimary">#000000</color>
 
-    <color name="productGridBackgroundColor">#FFFFFF</color>
+    <color name="listBackgroundColor">#FFFFFF</color>
 </resources>

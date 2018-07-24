@@ -4,9 +4,5 @@
     <string name="hint_find">Вакансия</string>
     <string name="action_find">Найти</string>
 
-    <string name="fake_description">Описание вакансии</string>
-    <string name="fake_title">@string/hint_find</string>
-
-
     <string name="filter_title">Фильтр</string>
 </resources>
