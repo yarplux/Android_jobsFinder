@@ -7,6 +7,8 @@ import android.os.Bundle;
 
 import com.shifu.user.recrutin_android.realm.Jobs;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements NavigationHost{
 
     private static RealmRVAdapter ra;
@@ -21,6 +23,18 @@ public class MainActivity extends AppCompatActivity implements NavigationHost{
     static void setRA(RealmRVAdapter ra) {
         MainActivity.ra = ra;
     }
+
+
+    private static ItemRVAdapter adapter;
+
+    public static ItemRVAdapter getAdapter() {
+        return adapter;
+    }
+
+    public static void setAdapter(ItemRVAdapter adapter) {
+        MainActivity.adapter = adapter;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,4 +73,19 @@ public class MainActivity extends AppCompatActivity implements NavigationHost{
 
         transaction.commit();
     }
+
+    @Override
+    public void onBackPressed() {
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        for(Fragment f : fragments){
+            if(f != null && f instanceof WebFragment) {
+                ((WebFragment) f).onBackPressed();
+                break;
+            } else {
+                super.onBackPressed();
+            }
+        }
+    }
+
+
 }

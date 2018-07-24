@@ -53,34 +53,34 @@
     "description": "Job 2 Description",
     "salary": "salary 2",
     "company": "company 2",
-    "url": "google.com"
+    "url": "http://www.google.com"
   },
   {
     "title": "Job 3",
     "description": "Job 3 Description",
     "salary": "salary 3",
     "company": "company 3",
-    "url": "bash.im"
+    "url": "http://www.bash.im"
   },
   {
     "title": "Job 1",
     "description": "Job 1 Description",
     "salary": "salary 1",
     "company": "company 1",
-    "url": "yandex.ru"
+    "url": "http://www.yandex.ru"
   },
   {
     "title": "Job 2",
     "description": "Job 2 Description",
     "salary": "salary 2",
     "company": "company 2",
-    "url": "google.com"
+    "url": "http://www.google.com"
   },
   {
     "title": "Job 3",
     "description": "Job 3 Description",
     "salary": "salary 3",
     "company": "company 3",
-    "url": "bash.im"
+    "url": "http://www.bash.im"
   }
 ]
