@@ -6,12 +6,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.shifu.user.recrutin_android.json.JsonFake;
 import com.shifu.user.recrutin_android.json.JsonJob;
 import com.shifu.user.recrutin_android.realm.Jobs;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,8 +58,28 @@ public class RealmController {
                     item.setUrl(obj.getUrl());
                 }
 
-                MainActivity.setRA(new RealmRVAdapter(realm.where(Jobs.class).findAll().sort("date")));
-                MainActivity.getRA().notifyDataSetChanged();
+                //MainActivity.setRA(new RealmRVAdapter(realm.where(Jobs.class).findAll().sort("title")));
+                //MainActivity.getRA().notifyDataSetChanged();
+                h.sendMessage(Message.obtain(h, 1, TAG));
+            }
+        });
+    }
+
+    public void setData(final List<JsonFake> data, final Handler h) {
+        final String TAG = CLASS_TAG+"setData";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(@NotNull Realm realm) {
+                realm.where(Jobs.class).findAll().deleteAllFromRealm();
+                for (JsonFake obj : data) {
+                    Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
+                    item.setTitle(obj.title);
+                    item.setCompany(obj.company);
+                    item.setDescription(obj.description);
+                    item.setSalary(Long.parseLong(obj.salary));
+                    item.setUrl(obj.url);
+                }
+
                 h.sendMessage(Message.obtain(h, 1, TAG));
             }
         });
@@ -121,6 +143,34 @@ public class RealmController {
     public <T extends RealmObject> Long getSize (Class<T> objClass) {
         if (objClass == null) return null;
         return realm.where(objClass).count();
+    }
+
+    public List<JsonFake> getData(String sortField, Handler h){
+        RealmResults<Jobs> base;
+        final String TAG = CLASS_TAG+"getData";
+        boolean sort = false;
+        if (sortField != null)
+        {
+            for (Field f: Jobs.class.getDeclaredFields()) {
+                if (f.getName().equals(sortField)){
+                    sort = true;
+                    break;
+                }
+            }
+        }
+
+        if (sort) {
+            base = realm.where(Jobs.class).findAll().sort(sortField);
+        } else {
+            base = realm.where(Jobs.class).findAll();
+        }
+
+        List<JsonFake> list=new ArrayList <>();
+        for (Jobs obj : base) {
+            list.add(new JsonFake(obj.getTitle(), obj.getDescription(), Long.toString(obj.getSalary()), obj.getCompany(), obj.getUrl()));
+        }
+        h.sendMessage(Message.obtain(h, 1, TAG));
+        return list;
     }
 
     public <T extends RealmObject> RealmResults<T> getBase(Class<T> objClass, String sortField){

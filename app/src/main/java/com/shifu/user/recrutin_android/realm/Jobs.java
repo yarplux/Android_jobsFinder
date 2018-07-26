@@ -15,7 +15,7 @@ public class Jobs extends RealmObject {
 
     private String title;
     private String description;
-    private String salary;
+    private Long salary;
     private String company;
     private String url;
 
@@ -38,11 +38,11 @@ public class Jobs extends RealmObject {
         this.description = description;
     }
 
-    public String getSalary() {
+    public Long getSalary() {
         return salary;
     }
 
-    public void setSalary(String salary) {
+    public void setSalary(Long salary) {
         this.salary = salary;
     }
 

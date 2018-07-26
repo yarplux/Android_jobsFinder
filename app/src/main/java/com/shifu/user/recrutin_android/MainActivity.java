@@ -1,9 +1,11 @@
 package com.shifu.user.recrutin_android;
 
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.shifu.user.recrutin_android.realm.Jobs;
 
@@ -24,33 +26,48 @@ public class MainActivity extends AppCompatActivity implements NavigationHost{
         MainActivity.ra = ra;
     }
 
+    final Handler h = new Handler(new Handler.Callback() {
+        String TAG = "H.Main";
 
-    private static ItemRVAdapter adapter;
-
-    public static ItemRVAdapter getAdapter() {
-        return adapter;
-    }
-
-    public static void setAdapter(ItemRVAdapter adapter) {
-        MainActivity.adapter = adapter;
-    }
-
+        @Override
+        public boolean handleMessage(android.os.Message msg) {
+            Log.d(TAG, "Event type:" + Integer.toString(msg.what));
+            Log.d(TAG, "Event:" + msg.obj);
+            if (msg.what == 1) {
+                switch ((String) msg.obj) {
+                    case "RC.clear":
+                        ra =  new RealmRVAdapter(rc.getBase(Jobs.class, "title"), h);
+                        break;
+                    case "RA":
+                        getSupportFragmentManager()
+                                .beginTransaction()
+                                .add(R.id.container, new ListFragment(), "START")
+                                .commit();
+                        break;
+                }
+            }
+            if (msg.what == 2) {
+                WebFragment fragment = new WebFragment();
+                Bundle args = new Bundle();
+                args.putString("url", (String) msg.obj);
+                fragment.setArguments(args);
+                navigateTo(fragment, true);
+            }
+            return false;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final MainActivity activity = this;
+
+
+
         rc = new RealmController(getApplicationContext());
-        ra =  new RealmRVAdapter(rc.getBase(Jobs.class, "title"));
-
-
-        if (savedInstanceState == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.container, new ListFragment())
-                    .commit();
-        }
+        rc.clear(h);
     }
 
     /**
