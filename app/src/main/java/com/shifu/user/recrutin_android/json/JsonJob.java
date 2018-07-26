@@ -17,7 +17,7 @@ public class JsonJob {
 
     @SerializedName("salary")
     @Expose
-    private String salary;
+    private Long salary;
 
     @SerializedName("company")
     @Expose
@@ -27,7 +27,7 @@ public class JsonJob {
     @Expose
     private String url;
 
-    public JsonJob(String title, String description, String salary, String company, String url) {
+    public JsonJob(String title, String description, Long salary, String company, String url) {
         this.title = title;
         this.description = description;
         this.salary = salary;
@@ -51,11 +51,11 @@ public class JsonJob {
         this.description = description;
     }
 
-    public String getSalary() {
+    public Long getSalary() {
         return salary;
     }
 
-    public void setSalary(String salary) {
+    public void setSalary(Long salary) {
         this.salary = salary;
     }
 

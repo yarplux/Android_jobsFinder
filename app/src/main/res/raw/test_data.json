@@ -2,84 +2,84 @@
   {
     "title": "Job 1",
     "description": "Job 1 Description",
-    "salary": "salary 1",
-    "company": "company 1",
-    "url": "yandex.ru"
-  },
-  {
-    "title": "Job 2",
-    "description": "Job 2 Description",
-    "salary": "salary 2",
-    "company": "company 2",
-    "url": "google.com"
-  },
-  {
-    "title": "Job 3",
-    "description": "Job 3 Description",
-    "salary": "salary 3",
-    "company": "company 3",
-    "url": "bash.im"
-  },
-  {
-    "title": "Job 1",
-    "description": "Job 1 Description",
-    "salary": "salary 1",
-    "company": "company 1",
-    "url": "yandex.ru"
-  },
-  {
-    "title": "Job 2",
-    "description": "Job 2 Description",
-    "salary": "salary 2",
-    "company": "company 2",
-    "url": "google.com"
-  },
-  {
-    "title": "Job 3",
-    "description": "Job 3 Description",
-    "salary": "salary 3",
-    "company": "company 3",
-    "url": "bash.im"
-  },
-  {
-    "title": "Job 1",
-    "description": "Job 1 Description",
-    "salary": "salary 1",
-    "company": "company 1",
-    "url": "yandex.ru"
-  },
-  {
-    "title": "Job 2",
-    "description": "Job 2 Description",
-    "salary": "salary 2",
-    "company": "company 2",
-    "url": "http://www.google.com"
-  },
-  {
-    "title": "Job 3",
-    "description": "Job 3 Description",
-    "salary": "salary 3",
-    "company": "company 3",
-    "url": "http://www.bash.im"
-  },
-  {
-    "title": "Job 1",
-    "description": "Job 1 Description",
-    "salary": "salary 1",
+    "salary": "10000",
     "company": "company 1",
     "url": "http://www.yandex.ru"
   },
   {
     "title": "Job 2",
     "description": "Job 2 Description",
-    "salary": "salary 2",
+    "salary": "25000",
     "company": "company 2",
     "url": "http://www.google.com"
   },
   {
     "title": "Job 3",
     "description": "Job 3 Description",
-    "salary": "salary 3",
+    "salary": "100000",
+    "company": "company 3",
+    "url": "http://www.bash.im"
+  },
+  {
+    "title": "Job 1",
+    "description": "Job 1 Description",
+    "salary": "10000",
+    "company": "company 1",
+    "url": "http://www.yandex.ru"
+  },
+  {
+    "title": "Job 2",
+    "description": "Job 2 Description",
+    "salary": "25000",
+    "company": "company 2",
+    "url": "http://www.google.com"
+  },
+  {
+    "title": "Job 3",
+    "description": "Job 3 Description",
+    "salary": "100000",
+    "company": "company 3",
+    "url": "http://www.bash.im"
+  },
+  {
+    "title": "Job 1",
+    "description": "Job 1 Description",
+    "salary": "10000",
+    "company": "company 1",
+    "url": "http://www.yandex.ru"
+  },
+  {
+    "title": "Job 2",
+    "description": "Job 2 Description",
+    "salary": "25000",
+    "company": "company 2",
+    "url": "http://www.google.com"
+  },
+  {
+    "title": "Job 3",
+    "description": "Job 3 Description",
+    "salary": "100000",
+    "company": "company 3",
+    "url": "http://www.bash.im"
+  },
+  {
+    "title": "Job 1",
+    "description": "Job 1 Description",
+    "salary": "10000",
+    "company": "company 1",
+    "url": "http://www.yandex.ru"
+  },
+  {
+    "title": "Job 2",
+    "description": "Job 2 Description",
+    "salary": "25000",
+    "company": "company 2",
+    "url": "http://www.google.com"
+  },
+  {
+    "title": "Job 3",
+    "description": "Job 3 Description",
+    "salary": "100000",
     "company": "company 3",
     "url": "http://www.bash.im"
   }
