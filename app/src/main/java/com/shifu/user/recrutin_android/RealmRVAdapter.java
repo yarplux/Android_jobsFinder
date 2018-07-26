@@ -68,7 +68,7 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
         viewHolder.title.setText(obj.getTitle());
         viewHolder.company.setText(obj.getCompany());
         viewHolder.description.setText(obj.getDescription());
-        viewHolder.salary.setText(String.format(Locale.getDefault(), "%, d",obj.getSalary()));
+        viewHolder.salary.setText(obj.getSalary());
         viewHolder.url = obj.getUrl();
 
         }

@@ -19,13 +19,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.shifu.user.recrutin_android.json.JsonFake;
-
 public class ListFragment extends Fragment{
 
     private boolean isLoading = false;
     private RecyclerView recyclerView;
     private View mProgressView;
+
+    private String searchString = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,6 @@ public class ListFragment extends Fragment{
             @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.list_fragment, container, false);
-
         setUpToolbar(view);
 
 
@@ -51,11 +50,17 @@ public class ListFragment extends Fragment{
                 Log.d(TAG, "Event:" + msg.obj);
                 if (msg.what == 1) {
                     switch ((String) msg.obj) {
-                        case "RC.setData":
-                            showProgress(isLoading = false);
+                        case "RC.addJoobleJobs":
                             MainActivity.getRA().notifyDataSetChanged();
+                            showProgress(isLoading = false);
+                            break;
+                        case "FC.loadJobs":
+                            showProgress(isLoading = false);
                             break;
                     }
+                }
+                if (msg.what == 0) {
+                    showProgress(isLoading = false);
                 }
                 return false;
             }
@@ -71,19 +76,49 @@ public class ListFragment extends Fragment{
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(MainActivity.getRA());
 
+        final EditText searchText = view.findViewById(R.id.search_text);
+        searchText.requestFocus();
+
         Button b = view.findViewById(R.id.search_button);
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!isLoading) {
+                if (!isLoading && searchText.getText().toString().length() > 3) {
                     showProgress(isLoading = true);
-                    MainActivity.getRC().setData(JsonFake.initEntryList(getResources()), h);
+                    //MainActivity.getRC().setData(JsonFake.initEntryList(getResources()), h);
+                    Bundle args = new Bundle();
+                    args.putString("searchText", searchText.getText().toString());
+                    args.putString("page", "1");
+                    RestController.loadJobs(args, h);
                 }
             }
         });
 
-        EditText searchText = view.findViewById(R.id.search_text);
-        searchText.requestFocus();
+
+//        searchText.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                if (editable.length() > 3 && !editable.toString().equals(searchString)) {
+//                    searchString = editable.toString();
+//                    if (!isLoading) {
+//                        showProgress(isLoading = true);
+//                        MainActivity.getRC().setData(JsonFake.initEntryList(getResources()), h);
+//                    }
+//                }
+//                searchText.requestFocus();
+//            }
+//        });
+
         return view;
     }
 
@@ -100,6 +135,7 @@ public class ListFragment extends Fragment{
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.toolbar_menu, menu);
         super.onCreateOptionsMenu(menu, menuInflater);
+
     }
 
     private void showProgress(final boolean show) {
