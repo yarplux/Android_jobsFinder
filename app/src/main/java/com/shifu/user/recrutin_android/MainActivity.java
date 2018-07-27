@@ -63,9 +63,6 @@ public class MainActivity extends AppCompatActivity implements NavigationHost{
         setContentView(R.layout.activity_main);
 
         final MainActivity activity = this;
-
-
-
         rc = new RealmController(getApplicationContext());
         rc.clear(h);
     }

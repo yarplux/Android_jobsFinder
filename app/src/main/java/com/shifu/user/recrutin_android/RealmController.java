@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.shifu.user.recrutin_android.json.Job;
+import com.shifu.user.recrutin_android.json.JoobleJsonResponse;
 import com.shifu.user.recrutin_android.json.JsonFake;
 import com.shifu.user.recrutin_android.json.JsonJob;
 import com.shifu.user.recrutin_android.realm.Jobs;
@@ -44,7 +46,7 @@ public class RealmController {
     */
 
     public void addJobs(final List<JsonJob> data, final Handler h) {
-        final String TAG = CLASS_TAG+"addMsgs";
+        final String TAG = CLASS_TAG+"addJobs";
         realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(@NotNull Realm realm) {
@@ -54,7 +56,7 @@ public class RealmController {
                     item.setTitle(obj.getTitle());
                     item.setCompany(obj.getCompany());
                     item.setDescription(obj.getDescription());
-                    item.setSalary(obj.getSalary());
+                    item.setSalary(Long.toString(obj.getSalary()));
                     item.setUrl(obj.getUrl());
                 }
 
@@ -64,6 +66,27 @@ public class RealmController {
             }
         });
     }
+
+    public void addJoobleJobs(final JoobleJsonResponse data, final Handler h) {
+        final String TAG = CLASS_TAG+"addJoobleJobs";
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(@NotNull Realm realm) {
+
+                for (Job obj : data.getJobs()) {
+                    Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
+                    item.setTitle(obj.getTitle());
+                    item.setCompany(obj.getCompany());
+                    item.setDescription(obj.getSnippet());
+                    item.setSalary(obj.getSalary());
+                    item.setUrl(obj.getLink());
+                }
+                Log.d(TAG, "Loaded : "+realm.where(Jobs.class).count());
+                h.sendMessage(Message.obtain(h, 1, TAG));
+            }
+        });
+    }
+
 
     public void setData(final List<JsonFake> data, final Handler h) {
         final String TAG = CLASS_TAG+"setData";
@@ -76,7 +99,7 @@ public class RealmController {
                     item.setTitle(obj.title);
                     item.setCompany(obj.company);
                     item.setDescription(obj.description);
-                    item.setSalary(Long.parseLong(obj.salary));
+                    item.setSalary(obj.salary);
                     item.setUrl(obj.url);
                 }
 
@@ -85,56 +108,6 @@ public class RealmController {
         });
     }
 
-//    public void addJobs(final Map<String, JsonMsg> data, final Handler h) {
-//        final String TAG = CLASS_TAG+"addMsgs";
-//        realm.executeTransactionAsync(new Realm.Transaction() {
-//            @Override
-//            public void execute(@NotNull Realm realm) {
-//                realm.where(Messages.class).findAll().deleteAllFromRealm();
-//                for (String key : data.keySet()) {
-//                    JsonMsg obj = data.get(key);
-//                    Messages item = realm.createObject(Messages.class, UUID.randomUUID().toString());
-//                    item.setText(obj.getText());
-//                    Log.d(TAG, "Created text: "+obj.getText());
-//                    item.setDate(obj.getDate());
-//                    item.setUid(obj.getUid());
-//                    item.setFirebase_id(key);
-//                }
-//
-//                RealmResults<Messages> msgs = realm.where(Messages.class).findAll().sort("date");
-//                ActivityMain.setRA(new RealmRVAdapter(msgs));
-//                ActivityMain.getRA().notifyDataSetChanged();
-//                h.sendMessage(Message.obtain(h, 1, TAG));
-//            }
-//        });
-//    }
-
-//    public void addJob(final String text, final Long date, final Handler h) {
-//        final String TAG = CLASS_TAG+"addMsg";
-//        realm.executeTransactionAsync(new Realm.Transaction() {
-//            @Override
-//            public void execute(@NotNull Realm realm) {
-//                MessagesAuthor user = realm.where(MessagesAuthor.class).findFirst();
-//                Messages item = realm.createObject(Messages.class, UUID.randomUUID().toString());
-//                item.setText(text);
-//                item.setDate(date);
-//                item.setUid(user.getUid());
-//                item.setFirebase_id(null);
-//                ActivityMain.getRA().notifyDataSetChanged();
-//
-//                Bundle obj = new Bundle();
-//                obj.putString("text", text);
-//                obj.putLong("date", date);
-//                obj.putString("uuid", item.getID());
-//                obj.putString("uid", user.getUid());
-//                obj.putString("idToken", user.getIdToken());
-//                obj.putString("refreshToken", user.getRefreshToken());
-//
-//                RestController.pushMsg(obj, h);
-//                h.sendMessage(Message.obtain(h, 1, TAG));
-//            }
-//        });
-//    }
 
     /**
      * READ DATA FUNCTIONS _________________________________________________________________________
@@ -167,7 +140,7 @@ public class RealmController {
 
         List<JsonFake> list=new ArrayList <>();
         for (Jobs obj : base) {
-            list.add(new JsonFake(obj.getTitle(), obj.getDescription(), Long.toString(obj.getSalary()), obj.getCompany(), obj.getUrl()));
+            list.add(new JsonFake(obj.getTitle(), obj.getDescription(), obj.getSalary(), obj.getCompany(), obj.getUrl()));
         }
         h.sendMessage(Message.obtain(h, 1, TAG));
         return list;
