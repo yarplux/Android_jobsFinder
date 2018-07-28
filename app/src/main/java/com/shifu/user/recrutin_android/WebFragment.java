@@ -2,8 +2,10 @@ package com.shifu.user.recrutin_android;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -25,10 +28,21 @@ public class WebFragment extends Fragment implements OnBackPressed {
 
     private class MyWebViewClient extends WebViewClient
     {
+        // for old API
+        @SuppressWarnings("deprecation")
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url)
         {
             view.loadUrl(url);
+            return true;
+        }
+
+        // for latest APIs
+        @RequiresApi(Build.VERSION_CODES.N)
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request)
+        {
+            view.loadUrl(request.getUrl().toString());
             return true;
         }
 

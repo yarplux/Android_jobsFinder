@@ -33,6 +33,7 @@ public class Job {
     @SerializedName("id")
     @Expose
     private long id;
+
     @SerializedName("updated")
     @Expose
     private String updated;

@@ -17,6 +17,7 @@ public class Jobs extends RealmObject {
     private String description;
     private String salary;
     private String company;
+    private String updated;
     private String url;
 
     public String getUid() {
@@ -62,6 +63,14 @@ public class Jobs extends RealmObject {
         this.url = url;
     }
 
+    public String getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(String updated) {
+        this.updated = updated;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this)
@@ -69,10 +78,10 @@ public class Jobs extends RealmObject {
                 .append("description", description)
                 .append("salary", salary)
                 .append("company", company)
+                .append("updated", updated)
                 .append("url", url)
                 .toString();
     }
-
 
 }
 

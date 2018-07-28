@@ -26,7 +26,7 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView title, salary, company, description;
+        TextView title, salary, company, description, updated;
         String url;
 
         public Jobs data;
@@ -37,14 +37,10 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
             salary = itemView.findViewById(R.id.item_salary);
             company = itemView.findViewById(R.id.item_company);
             description = itemView.findViewById(R.id.item_description);
+            updated = itemView.findViewById(R.id.item_updated);
 
             title.setClickable(true);
-            title.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    h.sendMessage(Message.obtain(h, 2, url));
-                }
-            });
+            title.setOnClickListener(view -> h.sendMessage(Message.obtain(h, 2, url)));
         }
     }
 
@@ -64,11 +60,15 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
     @Override
     public void onBindViewHolder(@NotNull ViewHolder viewHolder, int position) {
         final Jobs obj = getItem(position);
+
         viewHolder.data = obj;
+
         viewHolder.title.setText(obj.getTitle());
         viewHolder.company.setText(obj.getCompany());
         viewHolder.description.setText(obj.getDescription());
         viewHolder.salary.setText(obj.getSalary());
+        viewHolder.updated.setText(obj.getUpdated());
+
         viewHolder.url = obj.getUrl();
 
         }
