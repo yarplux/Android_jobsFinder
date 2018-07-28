@@ -17,6 +17,7 @@ import java.util.UUID;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 public class RealmController {
@@ -58,12 +59,13 @@ public class RealmController {
         });
     }
 
-    public void addJoobleJobs(final JoobleJsonResponse data, final Handler h) {
+    public void addJoobleJobs(final JoobleJsonResponse data, final String search, final Handler h) {
         final String TAG = CLASS_TAG+"addJoobleJobs";
         realm.executeTransactionAsync(realm -> {
 
             for (Job obj : data.getJobs()) {
                 Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
+                item.setSearch(search);
                 item.setTitle(obj.getTitle());
                 item.setCompany(obj.getCompany());
                 item.setDescription(obj.getSnippet());
@@ -71,7 +73,7 @@ public class RealmController {
                 item.setUrl(obj.getLink());
                 item.setUpdated(obj.getUpdated());
             }
-            Log.d(TAG, "Loaded : "+realm.where(Jobs.class).count());
+            Log.d(TAG, "Finished. DB: "+realm.where(Jobs.class).count());
             h.sendMessage(Message.obtain(h, 1, TAG));
         });
     }
@@ -85,25 +87,40 @@ public class RealmController {
         return realm.where(objClass).count();
     }
 
-    public <T extends RealmObject> RealmResults<T> getBase(Class<T> objClass, String sortField){
-        RealmResults<T> base;
-        boolean sort = false;
-        if (sortField != null)
+    public <T extends RealmObject> RealmResults<T> getBase(Class<T> objClass, String filterField, String filterValue, String sortField){
+        RealmResults<T> base = null;
+
+        boolean sort = exist(objClass, sortField);
+        boolean filter = exist(objClass, filterField);
+
+        // TODO сделать проверку на тип значения для поля
+        if (sort && filter) {
+            base = realm.where(objClass)
+                    .equalTo(filterField, filterValue)
+                    .sort(sortField)
+                    .findAllAsync();
+        }
+        else if (sort){
+            base = realm.where(objClass).findAll().sort(sortField);
+        }
+        else if (filter){
+            base = realm.where(objClass).equalTo(filterField, filterValue).findAll();
+        }
+        return base;
+    }
+
+    private <T extends RealmObject> boolean exist(Class<T> objClass, String checkField) {
+        boolean check = false;
+        if (checkField != null)
         {
             for (Field f: objClass.getDeclaredFields()) {
-                if (f.getName().equals(sortField)){
-                    sort = true;
+                if (f.getName().equals(checkField)){
+                    check = true;
                     break;
                 }
             }
         }
-
-        if (sort) {
-            base = realm.where(objClass).findAll().sort(sortField);
-        } else {
-            base = realm.where(objClass).findAll();
-        }
-        return base;
+        return check;
     }
 
     public <T extends RealmObject> T getItem(Class<T> objClass, String field, Object value){

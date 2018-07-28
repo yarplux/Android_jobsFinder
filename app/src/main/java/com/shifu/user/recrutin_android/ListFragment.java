@@ -27,8 +27,12 @@ import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.shifu.user.recrutin_android.json.JoobleJsonRequest;
 import com.shifu.user.recrutin_android.json.JoobleJsonResponse;
 import com.shifu.user.recrutin_android.json.JsonApi;
+import com.shifu.user.recrutin_android.realm.Jobs;
 
 import org.reactivestreams.Publisher;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -46,24 +50,26 @@ public class ListFragment extends Fragment{
     private final String CLASS_TAG = ListFragment.class.getSimpleName();
 
     // Init layout elements
-    private RecyclerView recyclerView;
     private View mProgressView;
-    private LinearLayoutManager layoutManager;
+    private NestedScrollView scrollView;
 
     // Init search variables
     private boolean isLoading = false;
-    private String lastSearch = null;
-    private int pageNumber = 1;
-
-    private int lastVisibleItem, totalItemCount;
+    private Map<String, Integer> searchMap = new HashMap <>();
+    private String currentSearch;
 
     // Init Rx variables
     private static CompositeDisposable compositeDisposable;
+    private static Disposable currentDisposable = null;
     private PublishProcessor<Integer> paginator = PublishProcessor.create();
 
     // Init REST variables
     private final static String URL = "https://us.jooble.org/api/";
     private final static String API_KEY = "55a5dcfd-6776-4725-8e2b-2e5a5c279a77";
+
+    // Init program variables
+    private static RealmController rc = null;
+    private static RealmRVAdapter ra = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,6 +86,8 @@ public class ListFragment extends Fragment{
         View view = inflater.inflate(R.layout.list_fragment, container, false);
         setUpToolbar(view);
 
+        if (rc == null) rc = MainActivity.getRC();
+        if (ra == null) ra = MainActivity.getRA();
 
         final Handler h = new Handler(new Handler.Callback() {
             String TAG = CLASS_TAG+".h";
@@ -91,7 +99,7 @@ public class ListFragment extends Fragment{
                 if (msg.what == 1) {
                     switch ((String) msg.obj) {
                         case "RC.addJoobleJobs":
-                            MainActivity.getRA().notifyDataSetChanged();
+                            ra.setData(rc.getBase(Jobs.class, Jobs.FIELD_FILTER, currentSearch, "title"));
                             showProgress(isLoading = false);
                             break;
                         case "FC.loadJobs":
@@ -106,41 +114,55 @@ public class ListFragment extends Fragment{
             }
         });
 
+        final EditText searchText = view.findViewById(R.id.search_text);
+        searchText.requestFocus();
+
         mProgressView = view.findViewById(R.id.progress);
 
-        recyclerView = view.findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setNestedScrollingEnabled(false);
 
-        layoutManager = new LinearLayoutManager(getActivity());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerView.setAdapter(MainActivity.getRA());
+        recyclerView.setAdapter(ra);
 
-        NestedScrollView scrollView = view.findViewById(R.id.nested_scroll_view);
+        scrollView = view.findViewById(R.id.nested_scroll_view);
         scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             final String TAG = "onScrolled";
             if(v.getChildAt(v.getChildCount() - 1) != null) {
                 if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) && scrollY > oldScrollY) {
                     Log.d(TAG, "next portion");
                     if (!isLoading) {
-                        pageNumber++;
-                        paginator.onNext(pageNumber);
+                        searchMap.put(currentSearch, searchMap.get(currentSearch)+1);
+                        paginator.onNext(searchMap.get(currentSearch));
                     }
                 }
             }
         });
 
-        final EditText searchText = view.findViewById(R.id.search_text);
-        searchText.requestFocus();
 
         Button b = view.findViewById(R.id.search_button);
         b.setOnClickListener(view1 -> {
-            String currentSearch =searchText.getText().toString();
-            if (!isLoading && currentSearch.length() > 3 && !currentSearch.equals(lastSearch)) {
-                lastSearch = currentSearch;
-                subscribeForData(currentSearch, h);
+            String TAG = CLASS_TAG+".click";
+            currentSearch =searchText.getText().toString();
+            if (!isLoading && currentSearch.length() > 3) {
+                if (currentDisposable != null) {
+                    compositeDisposable.remove(currentDisposable);
+                }
+
+                boolean loadFirstPart = false;
+                if (searchMap.keySet().contains(currentSearch)) {
+                    ra.setData(rc.getBase(Jobs.class, Jobs.FIELD_FILTER, currentSearch, "title"));
+                    scrollView.scrollTo(0,0);
+                } else {
+                    searchMap.put(currentSearch, 1);
+                    loadFirstPart = true;
+                }
+
+                currentDisposable = subscribeForData(currentSearch, loadFirstPart, h);
             }
         });
 
@@ -158,7 +180,7 @@ public class ListFragment extends Fragment{
 //
 //            @Override
 //            public void afterTextChanged(Editable editable) {
-//                if (editable.length() > 3 && !editable.toString().equals(lastSearch)) {
+//                if (!isLoading && editable.length() > 3 && !editable.toString().equals(lastSearch)) {
 //                    lastSearch = editable.toString();
 //                    if (!isLoading) {
 //                        showProgress(isLoading = true);
@@ -191,14 +213,14 @@ public class ListFragment extends Fragment{
     private void showProgress(final boolean show) {
         int animTime = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
-        recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        recyclerView.animate().setDuration(animTime).alpha(
-                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-            }
-        });
+//        recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+//        recyclerView.animate().setDuration(animTime).alpha(
+//                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+//            @Override
+//            public void onAnimationEnd(Animator animation) {
+//                recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+//            }
+//        });
 
         mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
         mProgressView.animate().setDuration(animTime).alpha(
@@ -211,7 +233,7 @@ public class ListFragment extends Fragment{
     }
 
 
-    private void subscribeForData(String search, Handler h) {
+    private Disposable subscribeForData(String search, boolean loadNext, Handler h) {
 
         final String TAG = "subscribeForData";
 
@@ -219,13 +241,18 @@ public class ListFragment extends Fragment{
                 .onBackpressureDrop()
                 .concatMap((Function <Integer, Publisher <Response <JoobleJsonResponse>>>) page -> {
                     showProgress(isLoading = true);
-                    return loadJobsRx(search, pageNumber);
+                    return loadJobsRx(search, page);
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(response -> handleResponse(response, TAG, h), error -> handleError(error, TAG, h));
+                .subscribe(response -> handleResponse(response, search, TAG, h), error -> handleError(error, TAG, h));
 
         compositeDisposable.add(disposable);
-        paginator.onNext(pageNumber);
+
+        if (loadNext) {
+            paginator.onNext(searchMap.get(search));
+        }
+
+        return disposable;
     }
 
     public Flowable<Response<JoobleJsonResponse>> loadJobsRx(String search, int page) {
@@ -239,20 +266,21 @@ public class ListFragment extends Fragment{
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(JsonApi.class);
+
         Flowable<Response<JoobleJsonResponse>> flowable = jsonApi.loadJobsRx(API_KEY, new JoobleJsonRequest(search, Integer.toString(page)));
         return flowable.subscribeOn(Schedulers.io());
     }
 
-    private void handleResponse(Response<JoobleJsonResponse> response, String TAG, Handler h) {
+    private void handleResponse(Response<JoobleJsonResponse> response, String search, String TAG, Handler h) {
         if (response.isSuccessful()) {
-            Log.d(TAG, "Success for: " + response.body().toString());
-            MainActivity.getRC().addJoobleJobs(response.body(), h);
+            Log.d(TAG, "Success for: " + search + "\nTotal count: "+response.body().getTotalCount());
+            rc.addJoobleJobs(response.body(), search, h);
         } else {
             try {
                 String error = (response.body() == null) ? "null" : response.body().toString();
                 Log.e(TAG, "Response body: " + error);
 
-                error = (response.errorBody() == null) ? "null" : response.errorBody().toString();
+                error = (response.errorBody() == null) ? "null" : response.errorBody().string();
                 Log.e(TAG, "Response errorBody: " + error);
 
                 h.sendMessage(Message.obtain(h, 0, TAG));
