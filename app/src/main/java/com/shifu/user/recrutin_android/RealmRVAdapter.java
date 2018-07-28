@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,15 +15,23 @@ import com.shifu.user.recrutin_android.realm.Jobs;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Locale;
-
 import io.realm.OrderedRealmCollection;
+import io.realm.RealmChangeListener;
+import io.realm.RealmList;
 import io.realm.RealmRecyclerViewAdapter;
+import io.realm.RealmResults;
 
-public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewHolder> {
+/**
+ * работа с listener-ами: https://stackoverflow.com/questions/28995380/best-practices-to-use-realm-with-a-recycler-view/32758869
+ */
+
+class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewHolder> {
 
     private Handler h;
     private final static String TAG = "RA";
+
+//    private OrderedRealmCollection<Jobs> adapterData;
+//    private final RealmChangeListener listener;
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -47,6 +56,22 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
     RealmRVAdapter(OrderedRealmCollection<Jobs> data, Handler h) {
         super(data, true);
         setHasStableIds(true);
+
+//        this.adapterData = data;
+//        this.listener = (RealmChangeListener <RealmResults <Jobs>>) results -> {
+//            if (results != adapterData) {
+//                int i = 1;
+//                for (Jobs item : results) {
+//                    Log.d("RealmChange: " + i++, "search: " + item.getSearch() + " title: " + item.getTitle());
+//                }
+//                notifyDataSetChanged();
+//            }
+//        };
+//
+//        if (data != null) {
+//            ((RealmResults) data).addChangeListener(listener);
+//        }
+
         this.h = h;
         h.sendMessage(Message.obtain(h, 1, TAG));
     }
@@ -56,6 +81,11 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_card, viewGroup, false);
         return new ViewHolder(v);
     }
+
+//    @Override
+//    public int getItemCount() {
+//        return (adapterData == null)?0:adapterData.size();
+//    }
 
     @Override
     public void onBindViewHolder(@NotNull ViewHolder viewHolder, int position) {
@@ -78,6 +108,30 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapte
         //Log.d("RA.getItemId", getItem(index).toString());
         //TODO "заплатка" (return должен быть long, a uuid string. По утверждению автора работает норм примерно до 1*10^6 записей)
         return java.nio.ByteBuffer.wrap(getItem(index).getUid().getBytes()).asLongBuffer().get();
+    }
+
+    public void setData(OrderedRealmCollection<Jobs> data){
+        updateData(data);
+        notifyDataSetChanged();
+
+
+//        if (listener != null) {
+//            if (data instanceof RealmResults) Log.d("Updated", "by RealmResults");
+//            if (data instanceof RealmList) Log.d("Updated", "by RealmList");
+//
+//            if (adapterData != null) {
+//                Log.d("updateData", "listener removed");
+//                ((RealmResults) data).removeChangeListener(listener);
+//
+//            }
+//            if (data != null) {
+//                Log.d("updateData", "listener added");
+//                ((RealmResults) data).addChangeListener(listener);
+//            }
+//        }
+//
+//        this.adapterData = data;
+
     }
 
 }
