@@ -24,8 +24,7 @@ import android.widget.EditText;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import com.shifu.user.recrutin_android.json.JoobleJsonRequest;
-import com.shifu.user.recrutin_android.json.JoobleJsonResponse;
+import com.shifu.user.recrutin_android.json.JobsResponse;
 import com.shifu.user.recrutin_android.json.JsonApi;
 import com.shifu.user.recrutin_android.realm.Jobs;
 
@@ -64,7 +63,7 @@ public class ListFragment extends Fragment{
     private PublishProcessor<Integer> paginator = PublishProcessor.create();
 
     // Init REST variables
-    private final static String URL = "https://us.jooble.org/api/";
+    private final static String URL = " http://142.93.33.19/api/"; // "https://us.jooble.org/api/";
     private final static String API_KEY = "55a5dcfd-6776-4725-8e2b-2e5a5c279a77";
 
     // Init program variables
@@ -98,11 +97,11 @@ public class ListFragment extends Fragment{
                 Log.d(TAG, "Event:" + msg.obj);
                 if (msg.what == 1) {
                     switch ((String) msg.obj) {
-                        case "RC.addJoobleJobs":
+                        case "RC.addJobs":
                             ra.setData(rc.getBase(Jobs.class, Jobs.FIELD_FILTER, currentSearch, "title"));
                             showProgress(isLoading = false);
                             break;
-                        case "FC.loadJobs":
+                        case "FC.loadAllJobs":
                             showProgress(isLoading = false);
                             break;
                     }
@@ -239,7 +238,7 @@ public class ListFragment extends Fragment{
 
         Disposable disposable = paginator
                 .onBackpressureDrop()
-                .concatMap((Function <Integer, Publisher <Response <JoobleJsonResponse>>>) page -> {
+                .concatMap((Function <Integer, Publisher <Response <JobsResponse>>>) page -> {
                     showProgress(isLoading = true);
                     return loadJobsRx(search, page);
                 })
@@ -255,7 +254,7 @@ public class ListFragment extends Fragment{
         return disposable;
     }
 
-    public Flowable<Response<JoobleJsonResponse>> loadJobsRx(String search, int page) {
+    public Flowable<Response<JobsResponse>> loadJobsRx(String search, int page) {
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
@@ -267,14 +266,13 @@ public class ListFragment extends Fragment{
                 .build()
                 .create(JsonApi.class);
 
-        Flowable<Response<JoobleJsonResponse>> flowable = jsonApi.loadJobsRx(API_KEY, new JoobleJsonRequest(search, Integer.toString(page)));
+        Flowable<Response<JobsResponse>> flowable = jsonApi.loadAllJobs(Integer.toString(page), search);
         return flowable.subscribeOn(Schedulers.io());
     }
 
-    private void handleResponse(Response<JoobleJsonResponse> response, String search, String TAG, Handler h) {
+    private void handleResponse(Response<JobsResponse> response, String search, String TAG, Handler h) {
         if (response.isSuccessful()) {
-            Log.d(TAG, "Success for: " + search + "\nTotal count: "+response.body().getTotalCount());
-            rc.addJoobleJobs(response.body(), search, h);
+            rc.addJobs(response.body(), search, h);
         } else {
             try {
                 String error = (response.body() == null) ? "null" : response.body().toString();
@@ -293,6 +291,7 @@ public class ListFragment extends Fragment{
 
     private void handleError(Throwable t, String TAG, Handler h) {
         Log.e(TAG, "Failure: " + t.toString());
+        h.sendMessage(Message.obtain(h, 0, TAG));
     }
 
     @Override

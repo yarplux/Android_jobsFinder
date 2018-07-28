@@ -14,7 +14,14 @@ public interface JsonApi {
     @POST("{key}")
     Flowable<Response<JoobleJsonResponse>> loadJobsRx(@Path("key") String key, @Body JoobleJsonRequest jsonRequest);
 
-    @GET()
-    Flowable<Response<JoobleJsonResponse>> loadJobs(@Header("page") int page, @Header("keywords") String keywords);
+    @GET(".")
+    Flowable<Response<JobsResponse>> loadAllJobs(
+            @Header("page") String page,
+            @Header("keywords") String keywords);
 
+    @GET(".")
+    Flowable<Response<JobsResponse>> loadJobsWithSalary(
+            @Header("page") String page,
+            @Header("keywords") String keywords,
+            @Header("only-with-salary") String withSalary);
 }

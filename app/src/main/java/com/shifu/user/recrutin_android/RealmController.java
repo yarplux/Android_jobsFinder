@@ -6,18 +6,17 @@ import android.os.Message;
 import android.util.Log;
 
 import com.shifu.user.recrutin_android.json.Job;
-import com.shifu.user.recrutin_android.json.JoobleJsonResponse;
-import com.shifu.user.recrutin_android.json.JsonJob;
+import com.shifu.user.recrutin_android.json.JobsResponse;
 import com.shifu.user.recrutin_android.realm.Jobs;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 public class RealmController {
@@ -40,43 +39,42 @@ public class RealmController {
      * CREATE DATA FUNCTIONS _______________________________________________________________________
     */
 
-    public void addJobs(final List<JsonJob> data, final Handler h) {
+    public void addJobs(final JobsResponse data, final String search, final Handler h) {
         final String TAG = CLASS_TAG+"addJobs";
         realm.executeTransactionAsync(realm -> {
             realm.where(Jobs.class).findAll().deleteAllFromRealm();
-            for (JsonJob obj : data) {
-                Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
-                item.setTitle(obj.getTitle());
-                item.setCompany(obj.getCompany());
-                item.setDescription(obj.getDescription());
-                item.setSalary(Long.toString(obj.getSalary()));
-                item.setUrl(obj.getUrl());
-            }
-
-            //MainActivity.setRA(new RealmRVAdapter(realm.where(Jobs.class).findAll().sort("title")));
-            //MainActivity.getRA().notifyDataSetChanged();
-            h.sendMessage(Message.obtain(h, 1, TAG));
-        });
-    }
-
-    public void addJoobleJobs(final JoobleJsonResponse data, final String search, final Handler h) {
-        final String TAG = CLASS_TAG+"addJoobleJobs";
-        realm.executeTransactionAsync(realm -> {
-
             for (Job obj : data.getJobs()) {
                 Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
                 item.setSearch(search);
                 item.setTitle(obj.getTitle());
                 item.setCompany(obj.getCompany());
-                item.setDescription(obj.getSnippet());
+                item.setDescription(obj.getAbout());
                 item.setSalary(obj.getSalary());
-                item.setUrl(obj.getLink());
-                item.setUpdated(obj.getUpdated());
+                item.setUrl(obj.getUrl());
+                item.setUpdated(obj.getDate());
             }
-            Log.d(TAG, "Finished. DB: "+realm.where(Jobs.class).count());
             h.sendMessage(Message.obtain(h, 1, TAG));
         });
     }
+
+//    public void addJoobleJobs(final JoobleJsonResponse data, final String search, final Handler h) {
+//        final String TAG = CLASS_TAG+"addJoobleJobs";
+//        realm.executeTransactionAsync(realm -> {
+//
+//            for (Job obj : data.getJobs()) {
+//                Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
+//                item.setSearch(search);
+//                item.setTitle(obj.getTitle());
+//                item.setCompany(obj.getCompany());
+//                item.setDescription(obj.getSnippet());
+//                item.setSalary(obj.getSalary());
+//                item.setUrl(obj.getLink());
+//                item.setUpdated(obj.getUpdated());
+//            }
+//            Log.d(TAG, "Finished. DB: "+realm.where(Jobs.class).count());
+//            h.sendMessage(Message.obtain(h, 1, TAG));
+//        });
+//    }
 
     /**
      * READ DATA FUNCTIONS _________________________________________________________________________

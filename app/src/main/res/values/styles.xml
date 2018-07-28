@@ -24,6 +24,12 @@
         <item name="backgroundTint">?attr/colorAccent</item>
     </style>
 
+    <!--CheckBox theme-->
+    <style name="MyCheckBox" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorAccent</item>
+    </style>
+
     <!--Toolbar theme-->
     <style name="Widget.RecruteIn.Toolbar" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:background">@color/colorPrimary</item>
