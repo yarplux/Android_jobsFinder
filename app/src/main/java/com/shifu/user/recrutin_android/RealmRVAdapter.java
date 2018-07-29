@@ -35,7 +35,7 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView title, salary, company, description, updated;
+        TextView title, salary, company, updated; //description;
         String url;
 
         public Jobs data;
@@ -45,7 +45,7 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
             title = itemView.findViewById(R.id.item_title);
             salary = itemView.findViewById(R.id.item_salary);
             company = itemView.findViewById(R.id.item_company);
-            description = itemView.findViewById(R.id.item_description);
+            //description = itemView.findViewById(R.id.item_description);
             updated = itemView.findViewById(R.id.item_updated);
 
             title.setClickable(true);
@@ -95,7 +95,7 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
 
         viewHolder.title.setText(obj.getTitle());
         viewHolder.company.setText(obj.getCompany());
-        viewHolder.description.setText(obj.getDescription());
+        //viewHolder.description.setText(obj.getDescription());
         viewHolder.salary.setText(obj.getSalary());
         viewHolder.updated.setText(obj.getUpdated());
 
@@ -113,7 +113,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     public void setData(OrderedRealmCollection<Jobs> data){
         updateData(data);
         notifyDataSetChanged();
-
 
 //        if (listener != null) {
 //            if (data instanceof RealmResults) Log.d("Updated", "by RealmResults");

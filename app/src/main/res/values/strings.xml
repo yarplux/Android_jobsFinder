@@ -7,4 +7,6 @@
     <string name="filter_title">Фильтр</string>
 
     <string name="hint_filter_salary">Только с зарплатой</string>
+
+    <string name="toast_empty">К сожалению, таких вакансий в базе не найдено</string>
 </resources>

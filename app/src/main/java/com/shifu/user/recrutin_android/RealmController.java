@@ -3,7 +3,6 @@ package com.shifu.user.recrutin_android;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
 import com.shifu.user.recrutin_android.json.Job;
 import com.shifu.user.recrutin_android.json.JobsResponse;
@@ -11,7 +10,6 @@ import com.shifu.user.recrutin_android.realm.Jobs;
 
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import io.realm.Realm;
@@ -57,6 +55,28 @@ public class RealmController {
         });
     }
 
+    public void addJobs(final List<Job> data, final String search, final Handler h) {
+        final String TAG = CLASS_TAG+"addJobs";
+        realm.executeTransactionAsync(realm -> {
+            realm.where(Jobs.class).findAll().deleteAllFromRealm();
+            for (Job obj : data) {
+                Jobs item = realm.createObject(Jobs.class, UUID.randomUUID().toString());
+                item.setSearch(search);
+                item.setTitle(obj.getTitle());
+                item.setCompany(obj.getCompany());
+                item.setDescription(obj.getAbout());
+                if (obj.getSalary() == null) {
+                    item.setSalary("З/П не указана");
+                } else {
+                    item.setSalary(obj.getSalary());
+                }
+                item.setUrl(obj.getUrl());
+                item.setUpdated(obj.getDate());
+            }
+            h.sendMessage(Message.obtain(h, 1, TAG));
+        });
+    }
+
 //    public void addJoobleJobs(final JoobleJsonResponse data, final String search, final Handler h) {
 //        final String TAG = CLASS_TAG+"addJoobleJobs";
 //        realm.executeTransactionAsync(realm -> {
@@ -85,24 +105,14 @@ public class RealmController {
         return realm.where(objClass).count();
     }
 
-    public <T extends RealmObject> RealmResults<T> getBase(Class<T> objClass, String filterField, String filterValue, String sortField){
-        RealmResults<T> base = null;
+    public <T extends RealmObject> RealmResults<T> getBase(Class<T> objClass, String sortField){
+        RealmResults<T> base;
 
         boolean sort = exist(objClass, sortField);
-        boolean filter = exist(objClass, filterField);
-
-        // TODO сделать проверку на тип значения для поля
-        if (sort && filter) {
-            base = realm.where(objClass)
-                    .equalTo(filterField, filterValue)
-                    .sort(sortField)
-                    .findAllAsync();
-        }
-        else if (sort){
+        if (sort){
             base = realm.where(objClass).findAll().sort(sortField);
-        }
-        else if (filter){
-            base = realm.where(objClass).equalTo(filterField, filterValue).findAll();
+        } else {
+            base = realm.where(objClass).findAll();
         }
         return base;
     }
@@ -161,7 +171,6 @@ public class RealmController {
         realm.executeTransactionAsync(realm -> {
             realm.where(Jobs.class).findAll().deleteAllFromRealm();
             h.sendMessage(Message.obtain(h, 1, "RC.clear"));
-
         });
     }
 

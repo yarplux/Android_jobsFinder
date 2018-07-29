@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements NavigationHost{
             if (msg.what == 1) {
                 switch ((String) msg.obj) {
                     case "RC.clear":
-                        ra =  new RealmRVAdapter(rc.getBase(Jobs.class, null, null, "title"), h);
+                        ra =  new RealmRVAdapter(rc.getBase(Jobs.class, "title"), h);
                         break;
                     case "RA":
                         getSupportFragmentManager()
