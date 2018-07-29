@@ -6,98 +6,76 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Job {
 
-    @SerializedName("title")
+    @SerializedName("name")
     @Expose
-    private String title;
+    private String name;
     @SerializedName("location")
     @Expose
     private String location;
-    @SerializedName("snippet")
+    @SerializedName("about")
     @Expose
-    private String snippet;
+    private String about;
+    @SerializedName("url")
+    @Expose
+    private String url;
     @SerializedName("salary")
     @Expose
     private String salary;
-    @SerializedName("source")
+    @SerializedName("date")
     @Expose
-    private String source;
-    @SerializedName("type")
-    @Expose
-    private String type;
-    @SerializedName("link")
-    @Expose
-    private String link;
+    private String date;
     @SerializedName("company")
     @Expose
     private String company;
-    @SerializedName("id")
+    @SerializedName("data_from")
     @Expose
-    private long id;
-
-    @SerializedName("updated")
-    @Expose
-    private String updated;
+    private String data_from;
 
     public String getTitle() {
-        return title;
+        return name;
     }
 
     public String getLocation() {
         return location;
     }
 
-
-    public String getSnippet() {
-        return snippet;
+    public String getAbout() {
+        return about;
     }
-
 
     public String getSalary() {
         return salary;
     }
 
-    public String getSource() {
-        return source;
+    public String getUrl() {
+        return url;
     }
-
-
-    public String getType() {
-        return type;
-    }
-
-
-    public String getLink() {
-        return link;
-    }
-
 
     public String getCompany() {
         return company;
     }
 
 
-    public long getId() {
-        return id;
+    public String getData_from() {
+        return data_from;
     }
 
 
-    public String getUpdated() {
-        return updated;
+    public String getDate() {
+        return date;
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-				.append("title", title)
+				.append("title", name)
 				.append("location", location)
-				.append("snippet", snippet)
+				.append("about", about)
 				.append("salary", salary)
-				.append("source", source)
-				.append("type", type)
-				.append("link", link)
+				.append("url", url)
 				.append("company", company)
-				.append("id", id)
-				.append("updated", updated)
+				.append("data_from", data_from)
+				.append("date", date)
                 .toString();
     }
 

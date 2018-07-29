@@ -41,6 +41,14 @@
                 android:maxLines="1" />
         </android.support.design.widget.TextInputLayout>
 
+        <CheckBox
+            android:id="@+id/check_salary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/hint_filter_salary"
+            android:theme="@style/MyCheckBox"/>
+
         <android.support.design.button.MaterialButton
             android:id="@+id/search_button"
             android:layout_gravity="end"
