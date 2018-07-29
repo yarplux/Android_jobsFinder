@@ -1,7 +1,5 @@
 package com.shifu.user.recrutin_android;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -57,15 +55,17 @@ public class ListFragment extends Fragment{
 
     // Init search variables
     private boolean isLoading = false;
+    private boolean stateChanged = true;
 
-    private String lastSearch = null;
+    private String lastSearch;
     private boolean maxScrolled = false;
     private int pageNumber = 1;
+    private Toast message;
 
 
     // Init Rx variables
     private static CompositeDisposable compositeDisposable;
-    //private static Disposable currentDisposable = null;
+    private static Disposable currentDisposable = null;
     private PublishProcessor<Integer> paginator = PublishProcessor.create();
 
     // Init REST variables
@@ -87,7 +87,8 @@ public class ListFragment extends Fragment{
             if (msg.what == 1) {
                 switch ((String) msg.obj) {
                     case "RC.clear":
-                        subscribeForData(lastSearch, h);
+                        if (currentDisposable!= null) compositeDisposable.remove(currentDisposable);
+                        currentDisposable = subscribeForData(lastSearch, h);
                         break;
 
                     case "RC.addJobs":
@@ -104,8 +105,8 @@ public class ListFragment extends Fragment{
             }
             if (msg.what == 3) {
                 showProgress(isLoading = false);
-                lastSearch = null;
-                Toast.makeText(getActivity(), getResources().getString(R.string.toast_empty), Toast.LENGTH_LONG).show();
+                stateChanged = true;
+                message.show();
             }
             return false;
         }
@@ -129,15 +130,19 @@ public class ListFragment extends Fragment{
         if (rc == null) rc = MainActivity.getRC();
         if (ra == null) ra = MainActivity.getRA();
 
-
-
         final EditText searchText = view.findViewById(R.id.search_text);
         searchText.requestFocus();
+        lastSearch = searchText.getText().toString().toLowerCase();
+
+        message = Toast.makeText(getActivity(), getResources().getString(R.string.toast_empty), Toast.LENGTH_LONG);
 
         mProgressView = view.findViewById(R.id.progress);
         checkSalaryView = view.findViewById(R.id.check_salary);
 
-        checkSalaryView.setOnClickListener(view12 -> lastSearch = null);
+        checkSalaryView.setOnClickListener(view12 -> {
+            stateChanged = true;
+            Log.d("checkClick", "stateChanged: true");
+        });
 
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setNestedScrollingEnabled(false);
@@ -145,6 +150,7 @@ public class ListFragment extends Fragment{
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(false);
 
         recyclerView.setAdapter(ra);
 
@@ -152,6 +158,7 @@ public class ListFragment extends Fragment{
         scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             final String TAG = "onScrolled";
             if (v.getChildAt(v.getChildCount() - 1) != null) {
+                message.cancel();
                 if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) && scrollY >= oldScrollY) {
                     Log.d(TAG, "next portion");
                     if (!isLoading && !maxScrolled) {
@@ -164,16 +171,19 @@ public class ListFragment extends Fragment{
 
         Button b = view.findViewById(R.id.search_button);
         b.setOnClickListener(view1 -> {
-            if (!isLoading && (lastSearch == null || !lastSearch.equals(searchText.getText().toString().toLowerCase()))) {
+            if (!isLoading && (stateChanged || !lastSearch.equals(searchText.getText().toString().toLowerCase()))) {
                 lastSearch = searchText.getText().toString().toLowerCase();
                 scrollView.scrollTo(0, 0);
                 pageNumber = 1;
                 maxScrolled = false;
+                stateChanged = false;
+                message.cancel();
 
                 if (rc.getSize(Jobs.class) > 0) {
                     rc.clear(h);
                 } else {
-                    subscribeForData(lastSearch, h);
+                    if (currentDisposable!= null) compositeDisposable.remove(currentDisposable);
+                    currentDisposable = subscribeForData(lastSearch, h);
                 }
             }
         });
@@ -223,29 +233,11 @@ public class ListFragment extends Fragment{
     }
 
     private void showProgress(final boolean show) {
-        int animTime = getResources().getInteger(android.R.integer.config_mediumAnimTime);
-
-//        recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-//        recyclerView.animate().setDuration(animTime).alpha(
-//                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-//            @Override
-//            public void onAnimationEnd(Animator animation) {
-//                recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-//            }
-//        });
-
         mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-        mProgressView.animate().setDuration(animTime).alpha(
-                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            }
-        });
     }
 
 
-    private void subscribeForData(String search, Handler h) {
+    private Disposable subscribeForData(String search, Handler h) {
 
         final String TAG = "subscribeForData";
 
@@ -260,6 +252,8 @@ public class ListFragment extends Fragment{
 
         compositeDisposable.add(disposable);
         paginator.onNext(pageNumber);
+
+        return disposable;
     }
 
     public Flowable<Response<JobsResponse>> loadJobsRx(String search, int page) {
@@ -301,7 +295,7 @@ public class ListFragment extends Fragment{
                 h.sendMessage(Message.obtain(h, 0));
             }
             else {
-                rc.addJobs(response.body(), search, h);
+                rc.addJobs(response.body(), h);
             }
         } else {
             try {

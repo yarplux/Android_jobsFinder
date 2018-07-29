@@ -12,4 +12,6 @@
     <color name="textColorPrimary">#000000</color>
 
     <color name="listBackgroundColor">#FFFFFF</color>
+
+    <color name="transparent">#00000000</color>
 </resources>

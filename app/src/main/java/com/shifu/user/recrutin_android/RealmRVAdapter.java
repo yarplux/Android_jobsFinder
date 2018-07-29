@@ -30,9 +30,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     private Handler h;
     private final static String TAG = "RA";
 
-//    private OrderedRealmCollection<Jobs> adapterData;
-//    private final RealmChangeListener listener;
-
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView title, salary, company, updated; //description;
@@ -56,22 +53,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     RealmRVAdapter(OrderedRealmCollection<Jobs> data, Handler h) {
         super(data, true);
         setHasStableIds(true);
-
-//        this.adapterData = data;
-//        this.listener = (RealmChangeListener <RealmResults <Jobs>>) results -> {
-//            if (results != adapterData) {
-//                int i = 1;
-//                for (Jobs item : results) {
-//                    Log.d("RealmChange: " + i++, "search: " + item.getSearch() + " title: " + item.getTitle());
-//                }
-//                notifyDataSetChanged();
-//            }
-//        };
-//
-//        if (data != null) {
-//            ((RealmResults) data).addChangeListener(listener);
-//        }
-
         this.h = h;
         h.sendMessage(Message.obtain(h, 1, TAG));
     }
@@ -81,11 +62,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.item_card, viewGroup, false);
         return new ViewHolder(v);
     }
-
-//    @Override
-//    public int getItemCount() {
-//        return (adapterData == null)?0:adapterData.size();
-//    }
 
     @Override
     public void onBindViewHolder(@NotNull ViewHolder viewHolder, int position) {
@@ -111,26 +87,9 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     }
 
     public void setData(OrderedRealmCollection<Jobs> data){
+        Log.d(TAG, "setDataSize: "+data.size()+" from baseSize: "+MainActivity.getRC().getSize(Jobs.class));
         updateData(data);
         notifyDataSetChanged();
-
-//        if (listener != null) {
-//            if (data instanceof RealmResults) Log.d("Updated", "by RealmResults");
-//            if (data instanceof RealmList) Log.d("Updated", "by RealmList");
-//
-//            if (adapterData != null) {
-//                Log.d("updateData", "listener removed");
-//                ((RealmResults) data).removeChangeListener(listener);
-//
-//            }
-//            if (data != null) {
-//                Log.d("updateData", "listener added");
-//                ((RealmResults) data).addChangeListener(listener);
-//            }
-//        }
-//
-//        this.adapterData = data;
-
     }
 
 }
