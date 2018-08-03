@@ -1,7 +1,5 @@
 package com.shifu.user.recrutin_android;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -19,7 +17,9 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,9 +30,6 @@ import com.shifu.user.recrutin_android.realm.Jobs;
 
 import org.reactivestreams.Publisher;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -40,6 +37,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -51,11 +50,18 @@ public class ListFragment extends Fragment{
     // Init layout elements
     private View mProgressView;
     private NestedScrollView scrollView;
+    private CheckBox checkSalaryView;
+    private RecyclerView recyclerView;
 
     // Init search variables
     private boolean isLoading = false;
-    private Map<String, Integer> searchMap = new HashMap <>();
-    private String currentSearch;
+    private boolean stateChanged = true;
+
+    private String lastSearch;
+    private boolean maxScrolled = false;
+    private int pageNumber = 1;
+    private Toast message;
+
 
     // Init Rx variables
     private static CompositeDisposable compositeDisposable;
@@ -63,12 +69,48 @@ public class ListFragment extends Fragment{
     private PublishProcessor<Integer> paginator = PublishProcessor.create();
 
     // Init REST variables
-    private final static String URL = " http://142.93.33.19/api/"; // "https://us.jooble.org/api/";
-    private final static String API_KEY = "55a5dcfd-6776-4725-8e2b-2e5a5c279a77";
+    private final static String URL = " http://142.93.33.19/api/";
 
     // Init program variables
     private static RealmController rc = null;
     private static RealmRVAdapter ra = null;
+
+
+
+    final Handler h = new Handler(new Handler.Callback() {
+        String TAG = CLASS_TAG+".h";
+
+        @Override
+        public boolean handleMessage(android.os.Message msg) {
+            Log.d(TAG, "Event type:" + Integer.toString(msg.what));
+            Log.d(TAG, "Event:" + msg.obj);
+            if (msg.what == 1) {
+                switch ((String) msg.obj) {
+                    case "RC.clear":
+                        if (currentDisposable!= null) compositeDisposable.remove(currentDisposable);
+                        currentDisposable = subscribeForData(lastSearch, h);
+                        break;
+
+                    case "RC.addJobs":
+                        ra.setData(rc.getBase(Jobs.class, "title"));
+                        showProgress(isLoading = false);
+                        break;
+                    case "FC.loadAllJobs":
+                        showProgress(isLoading = false);
+                        break;
+                }
+            }
+            if (msg.what == 0) {
+                showProgress(isLoading = false);
+            }
+            if (msg.what == 3) {
+                showProgress(isLoading = false);
+                stateChanged = true;
+                message.show();
+            }
+            return false;
+        }
+    });
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,80 +130,61 @@ public class ListFragment extends Fragment{
         if (rc == null) rc = MainActivity.getRC();
         if (ra == null) ra = MainActivity.getRA();
 
-        final Handler h = new Handler(new Handler.Callback() {
-            String TAG = CLASS_TAG+".h";
-
-            @Override
-            public boolean handleMessage(android.os.Message msg) {
-                Log.d(TAG, "Event type:" + Integer.toString(msg.what));
-                Log.d(TAG, "Event:" + msg.obj);
-                if (msg.what == 1) {
-                    switch ((String) msg.obj) {
-                        case "RC.addJobs":
-                            ra.setData(rc.getBase(Jobs.class, Jobs.FIELD_FILTER, currentSearch, "title"));
-                            showProgress(isLoading = false);
-                            break;
-                        case "FC.loadAllJobs":
-                            showProgress(isLoading = false);
-                            break;
-                    }
-                }
-                if (msg.what == 0) {
-                    showProgress(isLoading = false);
-                }
-                return false;
-            }
-        });
-
         final EditText searchText = view.findViewById(R.id.search_text);
         searchText.requestFocus();
+        lastSearch = searchText.getText().toString().toLowerCase();
+
+        message = Toast.makeText(getActivity(), getResources().getString(R.string.toast_empty), Toast.LENGTH_LONG);
 
         mProgressView = view.findViewById(R.id.progress);
+        checkSalaryView = view.findViewById(R.id.check_salary);
 
-        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
-        recyclerView.setHasFixedSize(true);
+        checkSalaryView.setOnClickListener(view12 -> {
+            stateChanged = true;
+            Log.d("checkClick", "stateChanged: true");
+        });
+
+        recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setNestedScrollingEnabled(false);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(false);
 
         recyclerView.setAdapter(ra);
 
         scrollView = view.findViewById(R.id.nested_scroll_view);
         scrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             final String TAG = "onScrolled";
-            if(v.getChildAt(v.getChildCount() - 1) != null) {
-                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) && scrollY > oldScrollY) {
+            if (v.getChildAt(v.getChildCount() - 1) != null) {
+                message.cancel();
+                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) && scrollY >= oldScrollY) {
                     Log.d(TAG, "next portion");
-                    if (!isLoading) {
-                        searchMap.put(currentSearch, searchMap.get(currentSearch)+1);
-                        paginator.onNext(searchMap.get(currentSearch));
+                    if (!isLoading && !maxScrolled) {
+                        pageNumber++;
+                        paginator.onNext(pageNumber);
                     }
                 }
             }
         });
 
-
         Button b = view.findViewById(R.id.search_button);
         b.setOnClickListener(view1 -> {
-            String TAG = CLASS_TAG+".click";
-            currentSearch =searchText.getText().toString();
-            if (!isLoading && currentSearch.length() > 3) {
-                if (currentDisposable != null) {
-                    compositeDisposable.remove(currentDisposable);
-                }
+            if (!isLoading && (stateChanged || !lastSearch.equals(searchText.getText().toString().toLowerCase()))) {
+                lastSearch = searchText.getText().toString().toLowerCase();
+                scrollView.scrollTo(0, 0);
+                pageNumber = 1;
+                maxScrolled = false;
+                stateChanged = false;
+                message.cancel();
 
-                boolean loadFirstPart = false;
-                if (searchMap.keySet().contains(currentSearch)) {
-                    ra.setData(rc.getBase(Jobs.class, Jobs.FIELD_FILTER, currentSearch, "title"));
-                    scrollView.scrollTo(0,0);
+                if (rc.getSize(Jobs.class) > 0) {
+                    rc.clear(h);
                 } else {
-                    searchMap.put(currentSearch, 1);
-                    loadFirstPart = true;
+                    if (currentDisposable!= null) compositeDisposable.remove(currentDisposable);
+                    currentDisposable = subscribeForData(lastSearch, h);
                 }
-
-                currentDisposable = subscribeForData(currentSearch, loadFirstPart, h);
             }
         });
 
@@ -210,29 +233,11 @@ public class ListFragment extends Fragment{
     }
 
     private void showProgress(final boolean show) {
-        int animTime = getResources().getInteger(android.R.integer.config_mediumAnimTime);
-
-//        recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-//        recyclerView.animate().setDuration(animTime).alpha(
-//                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-//            @Override
-//            public void onAnimationEnd(Animator animation) {
-//                recyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-//            }
-//        });
-
         mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-        mProgressView.animate().setDuration(animTime).alpha(
-                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            }
-        });
     }
 
 
-    private Disposable subscribeForData(String search, boolean loadNext, Handler h) {
+    private Disposable subscribeForData(String search, Handler h) {
 
         final String TAG = "subscribeForData";
 
@@ -246,10 +251,7 @@ public class ListFragment extends Fragment{
                 .subscribe(response -> handleResponse(response, search, TAG, h), error -> handleError(error, TAG, h));
 
         compositeDisposable.add(disposable);
-
-        if (loadNext) {
-            paginator.onNext(searchMap.get(search));
-        }
+        paginator.onNext(pageNumber);
 
         return disposable;
     }
@@ -259,20 +261,42 @@ public class ListFragment extends Fragment{
                 .setLenient()
                 .create();
 
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient client = new OkHttpClient.Builder()
+//                .addInterceptor(interceptor)
+                .build();
+
         JsonApi jsonApi = new Retrofit.Builder()
                 .baseUrl(URL)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(JsonApi.class);
 
-        Flowable<Response<JobsResponse>> flowable = jsonApi.loadAllJobs(Integer.toString(page), search);
+
+        Flowable<Response<JobsResponse>> flowable;
+        if (checkSalaryView.isChecked()) {
+            flowable = jsonApi.loadJobsWithSalary(Integer.toString(page), search);
+        } else {
+            flowable = jsonApi.loadAllJobs(Integer.toString(page), search);
+        }
         return flowable.subscribeOn(Schedulers.io());
     }
 
     private void handleResponse(Response<JobsResponse> response, String search, String TAG, Handler h) {
         if (response.isSuccessful()) {
-            rc.addJobs(response.body(), search, h);
+            if (pageNumber == 1 && response.body().getJobs().size() == 0) {
+                h.sendMessage(Message.obtain(h, 3, TAG));
+            } else if (response.body().getJobs().size() == 0){
+                maxScrolled = true;
+                h.sendMessage(Message.obtain(h, 0));
+            }
+            else {
+                rc.addJobs(response.body(), h);
+            }
         } else {
             try {
                 String error = (response.body() == null) ? "null" : response.body().toString();

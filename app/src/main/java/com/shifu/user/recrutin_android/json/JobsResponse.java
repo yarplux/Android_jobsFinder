@@ -22,6 +22,10 @@ public class JobsResponse {
         return jobs;
     }
 
+    public String getNumberOfJobs() {
+        return number_of_jobs;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this)

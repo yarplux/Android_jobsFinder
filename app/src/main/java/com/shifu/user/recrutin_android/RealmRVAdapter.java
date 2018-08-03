@@ -30,12 +30,9 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     private Handler h;
     private final static String TAG = "RA";
 
-//    private OrderedRealmCollection<Jobs> adapterData;
-//    private final RealmChangeListener listener;
-
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView title, salary, company, description, updated;
+        TextView title, salary, company, updated; //description;
         String url;
 
         public Jobs data;
@@ -45,7 +42,7 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
             title = itemView.findViewById(R.id.item_title);
             salary = itemView.findViewById(R.id.item_salary);
             company = itemView.findViewById(R.id.item_company);
-            description = itemView.findViewById(R.id.item_description);
+            //description = itemView.findViewById(R.id.item_description);
             updated = itemView.findViewById(R.id.item_updated);
 
             title.setClickable(true);
@@ -56,22 +53,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     RealmRVAdapter(OrderedRealmCollection<Jobs> data, Handler h) {
         super(data, true);
         setHasStableIds(true);
-
-//        this.adapterData = data;
-//        this.listener = (RealmChangeListener <RealmResults <Jobs>>) results -> {
-//            if (results != adapterData) {
-//                int i = 1;
-//                for (Jobs item : results) {
-//                    Log.d("RealmChange: " + i++, "search: " + item.getSearch() + " title: " + item.getTitle());
-//                }
-//                notifyDataSetChanged();
-//            }
-//        };
-//
-//        if (data != null) {
-//            ((RealmResults) data).addChangeListener(listener);
-//        }
-
         this.h = h;
         h.sendMessage(Message.obtain(h, 1, TAG));
     }
@@ -82,11 +63,6 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
         return new ViewHolder(v);
     }
 
-//    @Override
-//    public int getItemCount() {
-//        return (adapterData == null)?0:adapterData.size();
-//    }
-
     @Override
     public void onBindViewHolder(@NotNull ViewHolder viewHolder, int position) {
         final Jobs obj = getItem(position);
@@ -95,7 +71,7 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
 
         viewHolder.title.setText(obj.getTitle());
         viewHolder.company.setText(obj.getCompany());
-        viewHolder.description.setText(obj.getDescription());
+        //viewHolder.description.setText(obj.getDescription());
         viewHolder.salary.setText(obj.getSalary());
         viewHolder.updated.setText(obj.getUpdated());
 
@@ -111,27 +87,9 @@ class RealmRVAdapter extends RealmRecyclerViewAdapter<Jobs, RealmRVAdapter.ViewH
     }
 
     public void setData(OrderedRealmCollection<Jobs> data){
+        Log.d(TAG, "setDataSize: "+data.size()+" from baseSize: "+MainActivity.getRC().getSize(Jobs.class));
         updateData(data);
         notifyDataSetChanged();
-
-
-//        if (listener != null) {
-//            if (data instanceof RealmResults) Log.d("Updated", "by RealmResults");
-//            if (data instanceof RealmList) Log.d("Updated", "by RealmList");
-//
-//            if (adapterData != null) {
-//                Log.d("updateData", "listener removed");
-//                ((RealmResults) data).removeChangeListener(listener);
-//
-//            }
-//            if (data != null) {
-//                Log.d("updateData", "listener added");
-//                ((RealmResults) data).addChangeListener(listener);
-//            }
-//        }
-//
-//        this.adapterData = data;
-
     }
 
 }

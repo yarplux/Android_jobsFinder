@@ -9,12 +9,9 @@ import io.realm.annotations.PrimaryKey;
 public class Jobs extends RealmObject {
 
     public static final String FIELD_ID = "uid";
-    public static final String FIELD_FILTER = "search";
 
     @PrimaryKey
     private String uid;
-
-    private String search;
 
     private String title;
     private String description;
@@ -74,19 +71,9 @@ public class Jobs extends RealmObject {
         this.updated = updated;
     }
 
-    public String getSearch() {
-        return search;
-    }
-
-    public void setSearch(String search) {
-        this.search = search;
-    }
-
-
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("search", search)
                 .append("title", title)
                 .append("description", description)
                 .append("salary", salary)
